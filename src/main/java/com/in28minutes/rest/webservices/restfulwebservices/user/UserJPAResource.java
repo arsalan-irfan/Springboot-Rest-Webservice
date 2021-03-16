@@ -18,11 +18,12 @@ import java.util.Optional;
 
 @RestController
 public class UserJPAResource {
-    @Autowired
-    private UserDaoService service;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PostRepository postRepository;
 
     @GetMapping("/jpa/users")
     public List<User> retrieveAllUsers(){
@@ -48,19 +49,48 @@ public class UserJPAResource {
 
     @DeleteMapping("/jpa/users/{id}")
     public void deleteUser(@PathVariable int id){
-        User user = service.deleteById(id);
-        if(user==null){
-            throw new UserNotFoundException("id-"+id);
-        }
+        userRepository.deleteById(id);
+
     }
 
 
 
     @PostMapping("/jpa/users")
     public ResponseEntity<Object> createUser(@Valid @RequestBody User user){
-        User savedUser = service.save(user);
+        User savedUser = userRepository.save(user);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
+    @GetMapping("/jpa/users/{id}/posts")
+    public List<Post> retrieveUserPosts(@PathVariable int id){
+        Optional<User> user = userRepository.findById(id);
+        if(!user.isPresent()){
+            throw new UserNotFoundException("id-"+id);
+        }
+
+        return user.get().getPosts();
+    }
+    @PostMapping("/jpa/users/{id}/posts")
+    public ResponseEntity<Object> createPost(@PathVariable int id, @RequestBody Post post) {
+
+        Optional<User> userOptional = userRepository.findById(id);
+
+        if(!userOptional.isPresent()) {
+            throw new UserNotFoundException("id-" + id);
+        }
+
+        User user = userOptional.get();
+
+        post.setUser(user);
+
+        postRepository.save(post);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(post.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
+
+    }
+
 
 }

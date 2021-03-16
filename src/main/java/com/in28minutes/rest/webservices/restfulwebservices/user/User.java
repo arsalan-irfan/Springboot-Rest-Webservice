@@ -1,14 +1,18 @@
 package com.in28minutes.rest.webservices.restfulwebservices.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
+
 @ApiModel(description = "All Details about the user. ")
 @Entity
 public class User {
@@ -24,6 +28,10 @@ public class User {
     @Past
     @ApiModelProperty(notes = "Birth date should be in the past")
     private Date birthDate;
+
+    @OneToMany(mappedBy="user")  //Map Of the field in Post.java
+    @JsonIgnoreProperties({"user"})
+    private List<Post> posts;
 
     public User() {
     }
@@ -58,6 +66,11 @@ public class User {
         this.birthDate = birthDate;
     }
 
+    public List<Post> getPosts() {
+        return posts;
+    }
 
-
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
 }
